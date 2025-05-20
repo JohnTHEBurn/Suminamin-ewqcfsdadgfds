@@ -59,32 +59,72 @@ def generate_site_content(coin_name, custom_data=None):
     if custom_data is None:
         custom_data = {}
     
-    # Get website data from the options module
-    website_data = website_options.generate_unique_website_data(coin_name)
-    
-    # Override with custom data if provided
-    if 'slogan' in custom_data:
-        website_data['slogan'] = custom_data['slogan']
-    
-    # Get social links if provided
-    social_links = custom_data.get('social_links', {})
-    
-    # Get logo if provided
-    logo_url = custom_data.get('logo_url', '')
-    
-    # Add additional fields required by the template
-    website_data.update({
-        "logo_url": logo_url,
-        "has_telegram": "telegram" in social_links,
-        "telegram_url": social_links.get("telegram", "#"),
-        "has_twitter": "twitter" in social_links,
-        "twitter_url": social_links.get("twitter", "#"),
-        "show_tokenomics": False,  # Always disable tokenomics
-        "buy_link": custom_data.get('buy_link', ''),
-        "dexscreener_link": custom_data.get('dexscreener_link', '')
-    })
-    
-    return website_data
+    try:
+        # Get website data from the options module
+        website_data = website_options.generate_unique_website_data(coin_name)
+        
+        # Override with custom data if provided
+        if 'slogan' in custom_data:
+            website_data['slogan'] = custom_data['slogan']
+        
+        # Get social links if provided
+        social_links = custom_data.get('social_links', {})
+        
+        # Get logo if provided
+        logo_url = custom_data.get('logo_url', '')
+        
+        # Ensure theme is in the right format for the template
+        if 'theme' in website_data and isinstance(website_data['theme'], dict):
+            theme = website_data['theme']
+        else:
+            # Fallback theme
+            theme = {"primary": "#FF6B6B", "secondary": "#4ECDC4", "accent": "#FFE66D"}
+        
+        # Ensure roadmap is in the right format
+        if 'roadmap' not in website_data or not website_data['roadmap']:
+            roadmap = ["Launch Website", "Create Social Media", "Token Launch", "CoinGecko Listing"]
+        else:
+            roadmap = website_data['roadmap']
+        
+        # Add additional fields required by the template
+        website_data.update({
+            "logo_url": logo_url,
+            "has_telegram": "telegram" in social_links,
+            "telegram_url": social_links.get("telegram", "#"),
+            "has_twitter": "twitter" in social_links,
+            "twitter_url": social_links.get("twitter", "#"),
+            "show_tokenomics": False,  # Always disable tokenomics
+            "buy_link": custom_data.get('buy_link', ''),
+            "dexscreener_link": custom_data.get('dexscreener_link', ''),
+            "roadmap": roadmap,
+            "theme": theme
+        })
+        
+        logging.debug(f"Generated website data: {website_data}")
+        return website_data
+        
+    except Exception as e:
+        logging.error(f"Error in generate_site_content: {e}")
+        logging.error(traceback.format_exc())
+        
+        # Fallback to basic website data
+        basic_data = {
+            "name": coin_name,
+            "formatted_name": coin_name,
+            "symbol": coin_name[:4].upper(),
+            "slogan": custom_data.get('slogan', "To the Moon! 🚀"),
+            "theme": {"primary": "#FF6B6B", "secondary": "#4ECDC4", "accent": "#FFE66D"},
+            "roadmap": ["Launch Website", "Create Social Media", "Token Launch", "CoinGecko Listing"],
+            "logo_url": logo_url,
+            "has_telegram": "telegram" in social_links,
+            "telegram_url": social_links.get("telegram", "#"),
+            "has_twitter": "twitter" in social_links,
+            "twitter_url": social_links.get("twitter", "#"),
+            "show_tokenomics": False,
+            "buy_link": custom_data.get('buy_link', ''),
+            "dexscreener_link": custom_data.get('dexscreener_link', '')
+        }
+        return basic_data
 
 # Routes
 @app.route('/')

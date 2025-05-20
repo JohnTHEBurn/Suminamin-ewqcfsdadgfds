@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  memecoin-generator:
+    build: .
+    ports:
+      - "5000:5000"
+      - "4040:4040"  # ngrok admin interface
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SERVER_URL=${SERVER_URL}
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    volumes:
+      - ./sites:/app/sites
+    restart: unless-stopped
